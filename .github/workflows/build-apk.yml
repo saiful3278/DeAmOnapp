@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,8 +28,29 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses
 
+      - name: Generate keystore and credentials
+        run: |
+          STORE_PASSWORD=$(openssl rand -hex 16)
+          KEY_PASSWORD=$(openssl rand -hex 16)
+          KEY_ALIAS="key-$(openssl rand -hex 8)"
+          echo "STORE_PASSWORD=$STORE_PASSWORD" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> $GITHUB_ENV
+          echo "KEY_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
+          echo "KEYSTORE_FILE=app/keystore.jks" >> $GITHUB_ENV
+          keytool -genkeypair -keystore app/keystore.jks -storepass "$STORE_PASSWORD" -keypass "$KEY_PASSWORD" -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=App, OU=CI, O=Org, L=City, S=State, C=US"
+
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Build debug APK
-        run: ./gradlew clean assembleDebug
+      - name: Build release APK (signed)
+        run: ./gradlew clean assembleRelease
+      
+      - name: Publish GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          files: |
+            **/build/outputs/apk/release/*.apk
+          draft: false
+          generate_release_notes: true
