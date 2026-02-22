@@ -18,5 +18,3 @@ local.properties
 *.aab
 *.log
 .kotlin/
-*.keystore
-*.jks
