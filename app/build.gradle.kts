@@ -25,11 +25,7 @@ android {
                 storeFile = file(storeFilePath)
             }
             val storeTypeEnv = System.getenv("KEYSTORE_TYPE")
-            if (!storeTypeEnv.isNullOrBlank()) {
-                storeType = storeTypeEnv
-            } else {
-                storeType = "pkcs12"
-            }
+            storeType = if (!storeTypeEnv.isNullOrBlank()) storeTypeEnv else "jks"
             storePassword = System.getenv("STORE_PASSWORD")
             keyAlias = System.getenv("KEY_ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")

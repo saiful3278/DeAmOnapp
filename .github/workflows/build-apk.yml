@@ -17,7 +17,7 @@ jobs:
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
       KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-      KEYSTORE_TYPE: pkcs12
+      KEYSTORE_TYPE: jks
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
           mkdir -p "$(dirname "$KEYSTORE_FILE")"
           printf %s "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_FILE"
       - name: Inspect keystore type
-        run: keytool -list -v -keystore "$KEYSTORE_FILE" -storepass "$STORE_PASSWORD" | sed -n '1,10p'
+        run: keytool -list -v -storetype "$KEYSTORE_TYPE" -keystore "$KEYSTORE_FILE" -storepass "$STORE_PASSWORD" | sed -n '1,10p'
       - name: Validate keystore exists
         run: test -f "$KEYSTORE_FILE"
 
