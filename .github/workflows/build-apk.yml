@@ -11,6 +11,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_FILE: app/keystore.jks
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,16 +33,8 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses
 
-      - name: Generate keystore and credentials
-        run: |
-          STORE_PASSWORD=$(openssl rand -hex 16)
-          KEY_PASSWORD=$(openssl rand -hex 16)
-          KEY_ALIAS="key-$(openssl rand -hex 8)"
-          echo "STORE_PASSWORD=$STORE_PASSWORD" >> $GITHUB_ENV
-          echo "KEY_PASSWORD=$KEY_PASSWORD" >> $GITHUB_ENV
-          echo "KEY_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
-          echo "KEYSTORE_FILE=app/keystore.jks" >> $GITHUB_ENV
-          keytool -genkeypair -keystore app/keystore.jks -storepass "$STORE_PASSWORD" -keypass "$KEY_PASSWORD" -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=App, OU=CI, O=Org, L=City, S=State, C=US"
+      - name: Validate keystore exists
+        run: test -f "$KEYSTORE_FILE"
 
       - name: Make Gradle executable
         run: chmod +x ./gradlew
