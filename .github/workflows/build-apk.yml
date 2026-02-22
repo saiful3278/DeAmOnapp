@@ -16,6 +16,7 @@ jobs:
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +34,10 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses
 
+      - name: Restore keystore from secret
+        run: |
+          mkdir -p "$(dirname "$KEYSTORE_FILE")"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_FILE"
       - name: Validate keystore exists
         run: test -f "$KEYSTORE_FILE"
 
