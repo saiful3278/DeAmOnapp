@@ -37,10 +37,12 @@ jobs:
 
       - name: Restore keystore from secret
         run: |
-          mkdir -p "$(dirname "$KEYSTORE_FILE")"
-          printf %s "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_FILE"
-      - name: Inspect keystore type
-        run: keytool -list -v -storetype "$KEYSTORE_TYPE" -keystore "$KEYSTORE_FILE" -storepass "$STORE_PASSWORD" | sed -n '1,10p'
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            mkdir -p "$(dirname "$KEYSTORE_FILE")"
+            printf %s "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_FILE"
+          fi
+      - name: Verify alias in keystore
+        run: keytool -list -storetype "$KEYSTORE_TYPE" -keystore "$KEYSTORE_FILE" -storepass "$STORE_PASSWORD" | grep -i "$KEY_ALIAS"
       - name: Validate keystore exists
         run: test -f "$KEYSTORE_FILE"
 
